@@ -125,7 +125,7 @@ export class SearchPage extends React.Component<State, Props> {
                 </form>
                 <div className="ui-g-12 ui-lg-3">
                         {this.state &&
-                            <Link to={{pathname:"/results", state: {pokemon: this.state.pokemons[0]}  }}>{this.state.pokemons[0].name}</Link>
+                            <Link to={{pathname:"/results", state: {pokemon: this.state.pokemons[0]}  }}>{this.state.pokemons[0].name}{this.state.pokemons[0].averageBaseExperience}</Link>
 
                         }
                 </div>

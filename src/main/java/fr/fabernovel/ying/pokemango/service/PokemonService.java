@@ -1,8 +1,6 @@
 package fr.fabernovel.ying.pokemango.service;
 
-import fr.fabernovel.ying.pokemango.model.Pokemon;
-import fr.fabernovel.ying.pokemango.model.PokemonS;
-import fr.fabernovel.ying.pokemango.model.Type;
+import fr.fabernovel.ying.pokemango.model.*;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -62,17 +60,18 @@ public class PokemonService {
             if (null == pokemon) {
                 return pokemonS;
             }
+
             int averageBaseExperience = getAverageBaseExpe(pokemon.getTypes(), restTemplate);
             setPokemon(pokemonS, pokemon, averageBaseExperience);
 
             System.out.println(pokemonS);
 
         } catch (NoSuchAlgorithmException e1) {
-            e1.printStackTrace();
-        } catch (KeyManagementException e1) {
-            e1.printStackTrace();
-        } catch (KeyStoreException e1) {
-            e1.printStackTrace();
+            System.out.println(e1.getCause() + e1.getMessage());
+        } catch (KeyManagementException e) {
+            System.out.println(e.getCause() + e.getMessage());
+        } catch (KeyStoreException e2) {
+            System.out.println(e2.getCause() + e2.getMessage());
         }
         return pokemonS;
     }
@@ -80,31 +79,42 @@ public class PokemonService {
     private int getAverageBaseExpe(List<Type> types, RestTemplate restTemplate) {
         HttpHeaders headers = new HttpHeaders();
         setHeaders(headers);
-        Map<String, String> params = new HashMap<>();
-        StringBuilder urlS = new StringBuilder();
-        urlS.append(urlApiPokeman);
-        urlS.append("?offset=1000");
-        urlS.append("&limit=1000");
         HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-        List<Pokemon> pokemons = restTemplate.exchange(urlS.toString(), HttpMethod.GET, entity, new ParameterizedTypeReference<List<Pokemon>>() {
-        }, params).getBody();
+        List<String> typesUrls = types.stream().map(type -> type.getType()).map(t -> t.getUrl()).collect(Collectors.toList());
+        List<PokemonType> pokemonTypes = typesUrls.stream().map(url ->
+        {
+            PokemonType pokemonType = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<PokemonType>() {
+            }).getBody();
+            return pokemonType;
+        }).collect(Collectors.toList());
+
+        List<Pokemon> pokemons = new ArrayList<>();
+        pokemonTypes.stream().
+                forEach(pokemonType ->
+                        {
+                            List<PokemonL> pokemonLList = pokemonType.getPokemon();
+                            pokemons.addAll(pokemonLList.stream().map(pokemonL ->
+                                    {
+                                        Pokemon pokemon = restTemplate.exchange(pokemonL.getPokemon().getUrl(), HttpMethod.GET, entity, new ParameterizedTypeReference<Pokemon>() {
+                                        }).getBody();
+                                        return pokemon;
+                                    }
+                            ).collect(Collectors.toList()));
+                        }
+                );
 
         if (pokemons == null) {
             return 0;
         }
-        List<Integer> baseExperiences = pokemons.stream().filter(pokemon -> {
-            AtomicBoolean containsType = new AtomicBoolean(false);
-            pokemon.getTypes().forEach(type -> {
-                if (types.contains(type)) {
-                    containsType.set(true);
-                }
-            });
-            return containsType.get();
-        }).map(Pokemon::getBase_experience).collect(Collectors.toList());
 
-        int averageBaseExpe = baseExperiences.stream().mapToInt(i -> i).sum() / baseExperiences.size();
+        List<Integer> baseExperiences = pokemons.stream().map(Pokemon::getBase_experience).collect(Collectors.toList());
 
-        return averageBaseExpe;
+        if (baseExperiences.size() != 0) {
+
+            return baseExperiences.stream().mapToInt(i -> i).sum() / baseExperiences.size();
+        }
+
+        return 0;
     }
 
     private void setPokemon(PokemonS pokemonS, Pokemon pokemon, int averageBaseExperience) {
@@ -131,7 +141,8 @@ public class PokemonService {
     }
 
 
-    private HttpComponentsClientHttpRequestFactory getHttpComponentsClientHttpRequestFactory() throws NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
+    private HttpComponentsClientHttpRequestFactory getHttpComponentsClientHttpRequestFactory() throws
+            NoSuchAlgorithmException, KeyManagementException, KeyStoreException {
         TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
         SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom()

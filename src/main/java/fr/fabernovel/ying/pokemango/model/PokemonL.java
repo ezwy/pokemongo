@@ -1,8 +1,8 @@
 package fr.fabernovel.ying.pokemango.model;
 
-public class Type {
+public class PokemonL {
     private String slot;
-    private TypeU type;
+    private PokemonU pokemon;
 
     public String getSlot() {
         return slot;
@@ -12,11 +12,11 @@ public class Type {
         this.slot = slot;
     }
 
-    public TypeU getType() {
-        return type;
+    public PokemonU getPokemon() {
+        return pokemon;
     }
 
-    public void setType(TypeU type) {
-        this.type = type;
+    public void setPokemon(PokemonU pokemon) {
+        this.pokemon = pokemon;
     }
 }
