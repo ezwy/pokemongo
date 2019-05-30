@@ -116,7 +116,7 @@ export class SearchPage extends React.Component<State, Props> {
                     id="pokemongo"
                     type="text"
                     ref="pokemongo"
-
+                    onBlur={(event: React.FormEvent<HTMLInputElement>) => this.updateInputValue(event)}
                     onChange={(event: React.FormEvent<HTMLInputElement>) => this.updateInputValue(event)}
                 />
                 <Button variant="contained" color="primary" onClick={this.getResults}>
@@ -125,7 +125,7 @@ export class SearchPage extends React.Component<State, Props> {
                 </form>
                 <div className="ui-g-12 ui-lg-3">
                         {this.state &&
-                            <Link to={{pathname:"/results", state: {pokemon: this.state.pokemons[0]}  }}>{this.state.pokemons[0].name}{this.state.pokemons[0].averageBaseExperience}</Link>
+                            <Link to={{pathname:"/results", state: {pokemon: this.state.pokemons[0]}  }}>{this.state.pokemons[0].name}</Link>
 
                         }
                 </div>

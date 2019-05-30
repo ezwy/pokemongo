@@ -1,17 +1,25 @@
 package fr.fabernovel.ying.pokemango.model;
 
 public class Stat {
-    private String base_stat;
+    private int base_stat;
     private String effort;
-    private String stat_name;
-    private String stat_url;
+    private StatD stat;
+    private int averageStat;
 
-    public String getBase_stat() {
+    public int getBase_stat() {
         return base_stat;
     }
 
-    public void setBase_stat(String base_stat) {
+    public void setBase_stat(int base_stat) {
         this.base_stat = base_stat;
+    }
+
+    public int getAverageStat() {
+        return averageStat;
+    }
+
+    public void setAverageStat(int averageStat) {
+        this.averageStat = averageStat;
     }
 
     public String getEffort() {
@@ -22,19 +30,11 @@ public class Stat {
         this.effort = effort;
     }
 
-    public String getStat_name() {
-        return stat_name;
+    public StatD getStat() {
+        return stat;
     }
 
-    public void setStat_name(String stat_name) {
-        this.stat_name = stat_name;
-    }
-
-    public String getStat_url() {
-        return stat_url;
-    }
-
-    public void setStat_url(String stat_url) {
-        this.stat_url = stat_url;
+    public void setStat(StatD stat) {
+        this.stat = stat;
     }
 }

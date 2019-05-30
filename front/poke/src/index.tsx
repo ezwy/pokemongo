@@ -4,6 +4,7 @@ import './index.css';
 import * as serviceWorker from './serviceWorker';
 import {HomeComponent} from "./Home";
 
+
 import 'bootstrap/dist/css/bootstrap.css';
 
 ReactDOM.render(<HomeComponent />, document.getElementById('root'));

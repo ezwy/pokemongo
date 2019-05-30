@@ -1,5 +1,7 @@
 package fr.fabernovel.ying.pokemango.model;
 
+import java.util.List;
+
 public class PokemonS {
     private String name;
     private int height;
@@ -9,6 +11,7 @@ public class PokemonS {
     private String sprite_img;
     private Species species;
     private String url;
+    private List<Stat> stats;
 
     public String getName() {
         return name;
@@ -72,5 +75,13 @@ public class PokemonS {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public List<Stat> getStats() {
+        return stats;
+    }
+
+    public void setStats(List<Stat> stats) {
+        this.stats = stats;
     }
 }

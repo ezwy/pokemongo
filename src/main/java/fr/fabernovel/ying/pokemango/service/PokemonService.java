@@ -18,7 +18,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 @Service
@@ -61,8 +60,8 @@ public class PokemonService {
                 return pokemonS;
             }
 
-            int averageBaseExperience = getAverageBaseExpe(pokemon.getTypes(), restTemplate);
-            setPokemon(pokemonS, pokemon, averageBaseExperience);
+            setAverageStats(pokemon, restTemplate);
+            setPokemon(pokemonS, pokemon);
 
             System.out.println(pokemonS);
 
@@ -76,11 +75,11 @@ public class PokemonService {
         return pokemonS;
     }
 
-    private int getAverageBaseExpe(List<Type> types, RestTemplate restTemplate) {
+    private void setAverageStats(Pokemon pokemon, RestTemplate restTemplate) {
         HttpHeaders headers = new HttpHeaders();
         setHeaders(headers);
         HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
-        List<String> typesUrls = types.stream().map(type -> type.getType()).map(t -> t.getUrl()).collect(Collectors.toList());
+        List<String> typesUrls = pokemon.getTypes().stream().map(type -> type.getType()).map(t -> t.getUrl()).collect(Collectors.toList());
         List<PokemonType> pokemonTypes = typesUrls.stream().map(url ->
         {
             PokemonType pokemonType = restTemplate.exchange(url, HttpMethod.GET, entity, new ParameterizedTypeReference<PokemonType>() {
@@ -91,40 +90,48 @@ public class PokemonService {
         List<Pokemon> pokemons = new ArrayList<>();
         pokemonTypes.stream().
                 forEach(pokemonType ->
-                        {
-                            List<PokemonL> pokemonLList = pokemonType.getPokemon();
-                            pokemons.addAll(pokemonLList.stream().map(pokemonL ->
-                                    {
-                                        Pokemon pokemon = restTemplate.exchange(pokemonL.getPokemon().getUrl(), HttpMethod.GET, entity, new ParameterizedTypeReference<Pokemon>() {
-                                        }).getBody();
-                                        return pokemon;
-                                    }
-                            ).collect(Collectors.toList()));
-                        }
-                );
+                {
+                    pokemons.addAll(pokemonType.getPokemon().stream().map(pokemonL ->
+                            {
+                                Pokemon pokemonT = restTemplate.exchange(pokemonL.getPokemon().getUrl(), HttpMethod.GET, entity, new ParameterizedTypeReference<Pokemon>() {
+                                }).getBody();
+                                return pokemonT;
+                            }
+                    ).collect(Collectors.toList()));
 
+                });
         if (pokemons == null) {
-            return 0;
+            return;
         }
+        pokemon.getStats().stream().forEach(pStat -> {
+            List<Integer> stats = new ArrayList<>();
+            //get all base_stats for the same stat
+            pokemons.stream().forEach(pokemon3 ->
+            {
+                pokemon3.getStats().stream().forEach(pstat2 -> {
+                    if (pstat2.getStat().getName().equalsIgnoreCase(pStat.getStat().getName())) {
+                        stats.add(pstat2.getBase_stat());
+                    }
+                });
+            });
+            if (stats.size() != 0) {
+                int averageStat = stats.stream().mapToInt(i -> i).sum() / stats.size();
+                pStat.setAverageStat(averageStat);
+            } else {
+                pStat.setAverageStat(0);
+            }
+        });
 
-        List<Integer> baseExperiences = pokemons.stream().map(Pokemon::getBase_experience).collect(Collectors.toList());
-
-        if (baseExperiences.size() != 0) {
-
-            return baseExperiences.stream().mapToInt(i -> i).sum() / baseExperiences.size();
-        }
-
-        return 0;
     }
 
-    private void setPokemon(PokemonS pokemonS, Pokemon pokemon, int averageBaseExperience) {
+    private void setPokemon(PokemonS pokemonS, Pokemon pokemon) {
         pokemonS.setBase_experience(pokemon.getBase_experience());
         pokemonS.setHeight(pokemon.getHeight());
         pokemonS.setId(pokemon.getId());
         pokemonS.setName(pokemon.getName());
         pokemonS.setSpecies(pokemon.getSpecies());
         pokemonS.setSprite_img(pokemon.getSprites().getFront_default());
-        pokemonS.setAverageBaseExperience(averageBaseExperience);
+        pokemonS.setStats(pokemon.getStats());
     }
 
     private void setHeaders(HttpHeaders headers) {

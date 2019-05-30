@@ -1,4 +1,6 @@
 import {Species} from "./Species";
+import {StatD} from "./StatD";
+import {Stat} from "./Stat";
 
 export class PokemonS{
     public name?:string = "";
@@ -10,4 +12,5 @@ export class PokemonS{
     public weight?:number = 0;
     public url?:string;
     public averageBaseExperience?:number;
+    public stats?:Stat[];
 }
