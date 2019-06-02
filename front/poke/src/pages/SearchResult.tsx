@@ -6,6 +6,11 @@ import {Species} from "../model/Species";
 import {Props} from "react";
 import {Stat} from "../model/Stat";
 
+let Timeline = require('react-twitter-widgets').Timeline;
+let Tweet = require('react-twitter-widgets').Tweet;
+let Mention = require('react-twitter-widgets').Mention;
+let Hashtag = require('react-twitter-widgets').HashTag;
+
 interface State {
     pokemon: PokemonS;
 }
@@ -92,6 +97,19 @@ export class SearchResult extends React.Component<State, Props> {
                         Here is the basic information of stats
                         {this.getStatsTable()}
                     </li>
+                    <li><Timeline
+                        dataSource={{
+                            sourceType: 'profile',
+                            screenName: 'pokemon',
+                            hashtag: '{this.pokemonS.name}',
+                        }}
+                        options={{
+                            // hashtag: 'pokemon',
+                            height: '400',
+                            width: '200'
+                        }}
+                        onLoad={() => console.log('Timeline is loaded!')}
+                    /></li>
                 </ul>
             </div>
         );
